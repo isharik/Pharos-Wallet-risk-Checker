@@ -68,7 +68,7 @@ const PHAROS_NETWORKS = {
       'https://atlantic.dplabs-internal.com',
       'https://testnet.dplabs-internal.com'
     ],
-    explorer: 'https://testnet.pharosscan.xyz',
+    explorer: 'https://atlantic.pharosscan.xyz/',
     explorerApi: 'https://testnet.pharosscan.xyz/api'
   }
 };
