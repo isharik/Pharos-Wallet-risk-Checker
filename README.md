@@ -105,7 +105,7 @@ Document the actual scoring logic here, including signal weights and thresholds.
 
 ## License
 
-Add the license used by this repository.
+Not approved yet !
 
 
 
