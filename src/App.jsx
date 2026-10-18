@@ -1,42 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
   Search,
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info,
   ExternalLink,
   Copy,
   Check,
-  Cpu,
-  Clock,
-  FileCode2,
   GitFork,
-  KeyRound,
   Wallet,
   Sparkles,
   RefreshCw,
   Terminal,
-  Activity,
-  ChevronRight,
-  Lock,
-  Unlock,
-  Eye,
-  Sliders,
-  Zap,
-  FileText,
-  HelpCircle,
-  ArrowRight,
   Layers,
-  Radio,
   Sun,
   Moon,
-  Globe,
   Code2,
-  Server,
   Download
 } from 'lucide-react';
 
@@ -70,83 +49,6 @@ const PHAROS_NETWORKS = {
     ],
     explorer: 'https://atlantic.pharosscan.xyz/',
     explorerApi: 'https://testnet.pharosscan.xyz/api'
-  }
-};
-
-// Real deployed contracts on Pharos Network + verified reference targets
-const KNOWN_PHAROS_ENTITIES = {
-  '0x9c2826939c6b87e2c8f1fb582bc1354897d78997': {
-    address: '0x9C2826939C6b87E2c8F1fB582BC1354897d78997',
-    name: 'Pharos Compliant RWA Treasury Token',
-    category: 'Verified Institutional RWA Contract',
-    network: 'atlantic',
-    verified: true,
-    auditBadge: 'Verified on PharosScan • Multisig + Timelock Guarded',
-    curatedType: 'clean',
-    fallbackBytecode:
-      '0x608060405234801561001057600080fd5b506004361061009e5760003560e01c806306fdde03146100a3578063095ea7b3146100c157806318160ddd146100e157806323b872dd146100ff57806370a082311461012f5780638da5cb5b1461015f578063a9059cbb1461017d57',
-    fallbackBalance: '142.8500',
-    fallbackTxCount: 1284,
-    firstSeenDays: 194,
-    fundingOriginLabel: 'Pharos Ecosystem Multisig (Timelocked)',
-    flaggedExposurePct: 0,
-    isImmutable: true,
-    ownerAddress: '0x104E6D889875c5bac04c6a17cfb66d74b4638e95 (Timelock Multisig)'
-  },
-  '0xf0d41f52eef2d4e50f3f40842239c6169e48ab17': {
-    address: '0xf0D41F52EeF2d4E50F3f40842239C6169E48AB17',
-    name: 'Unverified Single-EOA Mint & Seizure Proxy',
-    category: 'High-Risk Unverified Token / Drainer Surface',
-    network: 'atlantic',
-    verified: false,
-    auditBadge: 'Unverified Bytecode • Critical Centralization & Drain Risk',
-    curatedType: 'risky',
-    // Includes DELEGATECALL (f4), SELFDESTRUCT (ff), setApprovalForAll (a22cb465), mint (40c10f19), blacklist (f9f92be4)
-    fallbackBytecode:
-      '0x608060405263a22cb4656340c10f1963f9f92be4638da5cb5b63d505accf545af43d82803e903d91602b57fd5bf3ff',
-    fallbackBalance: '0.0190',
-    fallbackTxCount: 47,
-    firstSeenDays: 1,
-    fundingOriginLabel: 'Fresh Anonymous Burner Wallet (Funded < 24h ago)',
-    flaggedExposurePct: 84,
-    isImmutable: false,
-    ownerAddress: '0xdead00008912bFe419c88310aBc9911fE6629103 (Unguarded Single EOA)'
-  },
-  '0x104e6d889875c5bac04c6a17cfb66d74b4638e95': {
-    address: '0x104E6D889875c5bac04c6a17cfb66d74b4638e95',
-    name: 'PharosSkillRegistry (Mainnet Core)',
-    category: 'Verified Pharos Agent Infrastructure',
-    network: 'mainnet',
-    verified: true,
-    auditBadge: 'Core Protocol Registry • Verified Source',
-    curatedType: 'clean',
-    fallbackBytecode:
-      '0x608060405234801561001057600080fd5b506004361061007d5760003560e01c806301ffc9a71461008257806370a08231146100b25780638da5cb5b146100d057',
-    fallbackBalance: '890.0000',
-    fallbackTxCount: 6410,
-    firstSeenDays: 240,
-    fundingOriginLabel: 'Pharos Foundation Genesis Deployer',
-    flaggedExposurePct: 0,
-    isImmutable: true,
-    ownerAddress: '0x0000000000000000000000000000000000000000 (Renounced)'
-  },
-  '0x2af3203cceae275a990a540c49d282e41199121c': {
-    address: '0x2aF3203cCeAE275a990a540c49D282e41199121c',
-    name: 'PharosSubscriptionManager (Recurring Pull)',
-    category: 'Automated Allowance Pull Contract',
-    network: 'mainnet',
-    verified: true,
-    auditBadge: 'Verified Pull-Payment Contract • Requires Allowance Caution',
-    curatedType: 'medium',
-    fallbackBytecode:
-      '0x608060405263095ea7b36323b872dd638da5cb5b635c975abb545af1',
-    fallbackBalance: '34.2100',
-    fallbackTxCount: 519,
-    firstSeenDays: 18,
-    fundingOriginLabel: 'Exchange Hot Wallet Withdrawal',
-    flaggedExposurePct: 0,
-    isImmutable: false,
-    ownerAddress: '0x78886aC600b0bD44F86aA4e68c8f4fb960647df8 (Active Admin)'
   }
 };
 
@@ -325,9 +227,9 @@ function analyzeEvmBytecode(bytecodeHex) {
 async function callPharosRpc(networkConfig, method, params = []) {
   const start = performance.now();
   for (const url of networkConfig.rpcUrls) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3200);
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3200);
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -339,9 +241,9 @@ async function callPharosRpc(networkConfig, method, params = []) {
         }),
         signal: controller.signal
       });
-      clearTimeout(timer);
       if (!res.ok) continue;
       const data = await res.json();
+      if (data && data.error) continue;
       if (data && data.result !== undefined) {
         return {
           ok: true,
@@ -352,6 +254,8 @@ async function callPharosRpc(networkConfig, method, params = []) {
       }
     } catch {
       // Try next RPC URL in list
+    } finally {
+      clearTimeout(timer);
     }
   }
   return { ok: false, result: null, endpoint: networkConfig.rpcUrls[0], latencyMs: null };
@@ -368,52 +272,33 @@ function buildRealInspectionReport({
   txCount,
   knownMeta
 }) {
+  const codeAvailable = typeof bytecodeHex === 'string';
   const opcodeReport = analyzeEvmBytecode(bytecodeHex);
   const isContract = opcodeReport.isContract;
 
-  // Determine maturity / age metrics from real txCount, bytecode, and verified registry
-  const estimatedDays = knownMeta?.firstSeenDays
-    ? knownMeta.firstSeenDays
-    : txCount > 500
-    ? 180
-    : txCount > 50
-    ? 45
-    : txCount > 5
-    ? 9
-    : 1;
+  // eth_getTransactionCount returns the account nonce, not transaction history or age.
+  const nonceLabel = txCount === null ? 'Unavailable' : txCount.toLocaleString();
 
-  const isVerified =
-    knownMeta?.verified !== undefined
-      ? knownMeta.verified
-      : isContract
-      ? opcodeReport.byteSize > 180 && !opcodeReport.hasSelfDestruct && !opcodeReport.isEip1167Proxy
-      : true;
+  // Bytecode size and opcode presence cannot establish source verification.
+  const isVerified = knownMeta?.verified ?? false;
 
   // Signal 01: Contract / Account Age & Activity Maturity
-  const sigAgeStatus =
-    estimatedDays >= 30 && txCount >= 15
-      ? 'PASS'
-      : estimatedDays <= 2 || (isContract && txCount < 10)
-      ? 'DANGER'
-      : 'WARN';
+  const sigAgeStatus = 'WARN';
 
   const signal01 = {
     id: 'age_maturity',
     number: '01',
     name: 'Contract & Wallet Maturity',
     status: sigAgeStatus,
-    metric: `${estimatedDays}d Active • ${txCount.toLocaleString()} Txs`,
-    plainEnglish:
-      sigAgeStatus === 'PASS'
-        ? `This address has a well-established history on ${networkConfig.shortName} (${txCount.toLocaleString()} transactions over ~${estimatedDays} days). Scam contracts almost always appear less than 48 hours before an attack.`
-        : sigAgeStatus === 'DANGER'
-        ? `Critical maturity warning: This address has virtually no historical track record (${txCount} transactions, ~${estimatedDays} day active). Freshly deployed contracts and zero-nonce wallets are the #1 indicator of disposable phishing drainers.`
-        : `Moderate history (${txCount} transactions, ~${estimatedDays} days active). Because this address is relatively new on Pharos, avoid granting large or unlimited token allowances.`,
-    technicalTelemetry: `eth_getTransactionCount: ${txCount} nonce/txs | Estimated age: ~${estimatedDays} days on Chain ID ${networkConfig.chainId}`
+    metric: `Account nonce: ${nonceLabel}`,
+    plainEnglish: 'An account nonce is available from the RPC, but it does not reveal the address age or full transaction history. This checker does not have an indexed history source.',
+    technicalTelemetry: `eth_getTransactionCount returned nonce ${nonceLabel} on Chain ID ${networkConfig.chainId}`
   };
 
   // Signal 02: Verified Source Code & Bytecode Integrity
-  const sigCodeStatus = !isContract
+  const sigCodeStatus = !codeAvailable
+    ? 'WARN'
+    : !isContract
     ? 'PASS'
     : isVerified && !opcodeReport.hasSelfDestruct
     ? 'PASS'
@@ -426,47 +311,47 @@ function buildRealInspectionReport({
     number: '02',
     name: 'Source Verification & Bytecode',
     status: sigCodeStatus,
-    metric: !isContract
+    metric: !codeAvailable
+      ? 'Bytecode unavailable'
+      : !isContract
       ? 'Standard EOA Wallet (0 Bytes)'
       : isVerified
       ? `Verified Source (${opcodeReport.byteSize} Bytes)`
       : `Unverified Bytecode (${opcodeReport.byteSize} Bytes)`,
-    plainEnglish: !isContract
+    plainEnglish: !codeAvailable
+      ? 'The RPC did not return bytecode, so this scan cannot determine whether the address is an account or contract.'
+      : !isContract
       ? 'This is a regular user wallet (Externally Owned Account) with no smart contract code attached, so it cannot execute hidden code tricks when you send funds to it.'
       : sigCodeStatus === 'PASS'
       ? 'The smart contract source code is publicly verified on PharosScan and contains zero destructive opcodes—meaning independent auditors can read exactly how it handles your tokens.'
       : sigCodeStatus === 'DANGER'
       ? 'The creator hid the contract source code AND our disassembler detected dangerous low-level machine instructions (DELEGATECALL / SELFDESTRUCT) capable of swapping logic or seizing funds.'
-      : 'This smart contract has not published verified source code on PharosScan. Interacting with unverified bytecode is like signing a legal contract blindfolded.',
-    technicalTelemetry: isContract
+      : 'Source verification could not be checked because no explorer verification endpoint is connected. The bytecode shown here is not a substitute for verified source.',
+    technicalTelemetry: !codeAvailable
+      ? 'eth_getCode unavailable'
+      : isContract
       ? `eth_getCode: ${opcodeReport.byteSize} bytes | Verified: ${isVerified ? 'YES' : 'NO'} | DELEGATECALL (0xf4): ${opcodeReport.hasDelegateCall} | SELFDESTRUCT (0xff): ${opcodeReport.hasSelfDestruct}`
       : 'eth_getCode returned 0x (Externally Owned Account — no EVM bytecode deployed)'
   };
 
   // Signal 03: Interaction with Flagged / Sanctioned / Drainer Addresses
-  const flaggedPct =
-    knownMeta?.flaggedExposurePct !== undefined
-      ? knownMeta.flaggedExposurePct
-      : address.toLowerCase().startsWith('0xdead') || address.toLowerCase().startsWith('0xbad')
-      ? 92
-      : 0;
-
-  const sigFlaggedStatus = flaggedPct >= 20 ? 'DANGER' : flaggedPct > 0 ? 'WARN' : 'PASS';
+  const flaggedPct = knownMeta?.flaggedExposurePct ?? null;
+  const sigFlaggedStatus = flaggedPct === null ? 'WARN' : flaggedPct >= 20 ? 'DANGER' : flaggedPct > 0 ? 'WARN' : 'PASS';
 
   const signal03 = {
     id: 'flagged_exposure',
     number: '03',
     name: 'Flagged & Illicit Address Exposure',
     status: sigFlaggedStatus,
-    metric: flaggedPct === 0 ? '0% Illicit Flow Detected' : `${flaggedPct}% Drainer Cluster Link`,
+    metric: flaggedPct === null ? 'Threat intelligence unavailable' : `${flaggedPct}% flagged exposure`,
     plainEnglish:
-      sigFlaggedStatus === 'PASS'
-        ? 'Zero interactions detected with known Pharos phishing syndicates, stolen-fund laundromats, or sanctioned addresses.'
-        : 'Red flag: On-chain threat intelligence links this address directly to a known wallet-drainer cluster that sweeps stolen user tokens into privacy mixers.',
+      flaggedPct === null
+        ? 'No threat-intelligence feed is connected, so this address could not be checked against known malicious entities.'
+        : sigFlaggedStatus === 'PASS'
+        ? 'No flagged exposure was returned by the configured threat-intelligence source.'
+        : 'The configured threat-intelligence source reported flagged exposure for this address.',
     technicalTelemetry:
-      sigFlaggedStatus === 'PASS'
-        ? '0/0 matches against Pharos Threat Feed, GoPlus Security Registry, & OFAC Sanctioned Graph'
-        : `High-confidence match (${flaggedPct}% flow correlation) with flagged drainer cluster & unverified proxy sweeps`
+      flaggedPct === null ? 'Threat-intelligence source not configured' : `${flaggedPct}% flagged exposure returned by configured source`
   };
 
   // Signal 04: Token Approval & Allowance Drain Patterns
@@ -504,9 +389,11 @@ function buildRealInspectionReport({
   };
 
   // Signal 05: Wallet Funding Origin & Liquidity Backing
-  const numBalance = parseFloat(balanceNative) || 0;
+  const numBalance = balanceNative === null ? null : parseFloat(balanceNative) || 0;
   const sigFundingStatus =
-    knownMeta?.curatedType === 'risky' || (numBalance < 0.05 && txCount < 10)
+    numBalance === null || txCount === null
+      ? 'WARN'
+      : knownMeta?.curatedType === 'risky' || (numBalance < 0.05 && txCount < 10)
       ? 'DANGER'
       : knownMeta?.curatedType === 'medium' || numBalance < 0.5
       ? 'WARN'
@@ -517,16 +404,16 @@ function buildRealInspectionReport({
     number: '05',
     name: 'Funding Origin & Native Reserve',
     status: sigFundingStatus,
-    metric: `${balanceNative} ${networkConfig.symbol}`,
+    metric: `${balanceNative === null ? 'Unavailable' : balanceNative} ${networkConfig.symbol}`,
     plainEnglish:
       sigFundingStatus === 'PASS'
-        ? `Backed by a healthy on-chain reserve (${balanceNative} ${networkConfig.symbol}) and transparent genesis funding rather than an anonymous burner wallet.`
+        ? `The queried account has a native balance of ${balanceNative} ${networkConfig.symbol}. Balance does not establish funding origin or trustworthiness.`
         : sigFundingStatus === 'DANGER'
-        ? `Freshly funded burner profile with near-zero native balance (${balanceNative} ${networkConfig.symbol}). Scammers keep minimal gas in drainer contracts so nothing can be recovered when flagged.`
-        : `Modest native reserve (${balanceNative} ${networkConfig.symbol}). Verify the project's official documentation before sending significant value.`,
-    technicalTelemetry: `eth_getBalance: ${balanceNative} ${networkConfig.symbol} | Origin: ${
-      knownMeta?.fundingOriginLabel || (sigFundingStatus === 'PASS' ? 'Established Pharos Account' : 'Low-Reserve Ephemeral Funding')
-    }`
+        ? `The queried account has a low native balance (${balanceNative} ${networkConfig.symbol}). Balance alone does not identify its funding source or intent.`
+      : balanceNative === null
+      ? 'Balance data was unavailable from the RPC.'
+      : `The queried account has a modest native balance (${balanceNative} ${networkConfig.symbol}). Balance alone does not establish trustworthiness.`,
+    technicalTelemetry: `eth_getBalance: ${balanceNative === null ? 'unavailable' : `${balanceNative} ${networkConfig.symbol}`} | Funding origin unavailable`
   };
 
   // Signal 06: Admin Privileges, Upgradeability & Seizure Controls
@@ -535,7 +422,9 @@ function buildRealInspectionReport({
     opcodeReport.hasDelegateCall ||
     opcodeReport.detectedSelectors.some((s) => s.hex === '40c10f19' || s.hex === 'f9f92be4');
 
-  const sigAdminStatus = !isContract
+  const sigAdminStatus = !codeAvailable
+    ? 'WARN'
+    : !isContract
     ? 'PASS'
     : knownMeta?.isImmutable && !hasAdminDanger
     ? 'PASS'
@@ -548,17 +437,21 @@ function buildRealInspectionReport({
     number: '06',
     name: 'Admin & Upgradeability Controls',
     status: sigAdminStatus,
-    metric: !isContract
+    metric: !codeAvailable
+      ? 'Bytecode unavailable'
+      : !isContract
       ? 'N/A (Standard User Wallet)'
       : sigAdminStatus === 'PASS'
       ? 'Immutable / Timelock Guarded'
       : sigAdminStatus === 'DANGER'
       ? 'Unguarded EOA Mint / Proxy Hook'
       : 'Active Admin Role Present',
-    plainEnglish: !isContract
+    plainEnglish: !codeAvailable
+      ? 'Admin and upgrade controls could not be evaluated because bytecode was unavailable.'
+      : !isContract
       ? 'Because this is a standard wallet address and not a smart contract, there are no admin backdoors or proxy upgrade switches.'
       : sigAdminStatus === 'PASS'
-      ? 'No single developer can secretly rewrite the rules, mint infinite tokens, or freeze your balance without passing through a verified timelock.'
+      ? 'The bytecode did not contain the limited admin patterns checked here. This scan does not inspect verified source, proxy implementations, or governance configuration.'
       : sigAdminStatus === 'DANGER'
       ? 'Critical centralization risk: A single unguarded owner key can upgrade the contract code, mint uncapped tokens, or blacklist your wallet from selling at any second.'
       : 'An admin role is present in the contract. Ensure the admin is controlled by a multi-signature wallet before committing large funds.',
@@ -604,20 +497,20 @@ function buildRealInspectionReport({
 
   const score = Math.min(99, Math.max(4, rawScore === 0 ? 5 : rawScore));
   let riskLevel = 'LOW';
-  let verdictHeadline = 'Verified Safe to Transact';
-  let verdictRecommendation = 'ALLOW TRANSACTION';
-  let executiveSummary = `All 6 pre-transaction security checks passed on ${networkConfig.name}. This address shows established on-chain maturity, clean bytecode, and zero links to flagged drainer clusters.`;
+  let verdictHeadline = 'Review Available Evidence';
+  let verdictRecommendation = 'REVIEW EVIDENCE BEFORE TRANSACTING';
+  let executiveSummary = `This report summarizes limited RPC and bytecode observations on ${networkConfig.name}. It does not simulate a transaction or establish that an address is safe.`;
 
   if (score >= 55 || dangerCount >= 2) {
     riskLevel = 'HIGH';
     verdictHeadline = 'High Risk Detected — Do Not Transact';
     verdictRecommendation = 'BLOCK TRANSACTION IMMEDIATELY';
-    executiveSummary = `Pharos Risk Engine flagged ${dangerCount} critical security violations. Interacting with or granting token approvals to this address exposes your wallet to immediate asset drainage or unguarded admin seizure.`;
+    executiveSummary = `The available bytecode and account signals contain ${dangerCount} high-severity pattern(s). Treat them as indicators for manual review; this scan does not prove malicious intent or simulate transaction effects.`;
   } else if (score >= 22 || dangerCount === 1 || warnCount >= 2) {
     riskLevel = 'MEDIUM';
     verdictHeadline = 'Elevated Caution Advised';
     verdictRecommendation = 'RESTRICT ALLOWANCE & VERIFY';
-    executiveSummary = `This address triggered ${dangerCount + warnCount} caution signals on ${networkConfig.shortName}. While not an active wallet drainer, it exhibits elevated risk factors such as limited history or active admin privileges.`;
+    executiveSummary = `This scan found ${dangerCount + warnCount} caution signal(s) on ${networkConfig.shortName}. Some data sources, including transaction history and threat intelligence, are not connected.`;
   }
 
   // Always include specific reasons even when LOW risk so Requirement 02 is 100% explicit
@@ -695,10 +588,15 @@ export default function App() {
   const runLivePharosInspection = useCallback(
     async (targetAddr, netKey = networkKey) => {
       const cleaned = (targetAddr || '').trim();
-      if (!cleaned) return;
+      if (!/^0x[\da-fA-F]{40}$/.test(cleaned)) {
+        setWalletStatusMsg('Enter a valid 42-character EVM address.');
+        setTimeout(() => setWalletStatusMsg(''), 3500);
+        return;
+      }
 
       const netConfig = PHAROS_NETWORKS[netKey];
-      const knownMeta = KNOWN_PHAROS_ENTITIES[cleaned.toLowerCase()] || null;
+      // Curated labels in this demo are not an authoritative threat-intelligence source.
+      const knownMeta = null;
 
       setIsScanning(true);
       setAiBrief('');
@@ -715,24 +613,16 @@ export default function App() {
       setScanStage('Disassembling EVM opcodes & evaluating 6 pre-transaction risk signals...');
       await new Promise((r) => setTimeout(r, 220));
 
-      const rpcLive = blockRes.ok || codeRes.ok || balRes.ok;
-      const blockNumber = blockRes.ok ? parseInt(blockRes.result, 16) : 4982310;
-      const latencyMs = blockRes.latencyMs || codeRes.latencyMs || 42;
+      const rpcLive = blockRes.ok && codeRes.ok && balRes.ok && txRes.ok;
+      const blockNumber = blockRes.ok ? parseInt(blockRes.result, 16) : null;
+      const latencyMs = [blockRes, codeRes, balRes, txRes].find((result) => result.ok)?.latencyMs ?? null;
 
       // Resolve bytecode: prefer live non-empty RPC bytecode, or fallback to verified on-chain snapshot if RPC is unreachable/CORS-restricted
-      let bytecodeHex = '0x';
+      let bytecodeHex = null;
       if (codeRes.ok && codeRes.result && codeRes.result !== '0x' && codeRes.result !== '0x0') {
         bytecodeHex = codeRes.result;
-      } else if (knownMeta?.fallbackBytecode) {
-        bytecodeHex = knownMeta.fallbackBytecode;
-      } else {
-        // Deterministic synthesis if user enters an arbitrary custom address while offline
-        const lower = cleaned.toLowerCase();
-        if (lower.startsWith('0xdead') || lower.startsWith('0xbad')) {
-          bytecodeHex = KNOWN_PHAROS_ENTITIES['0xf0d41f52eef2d4e50f3f40842239c6169e48ab17'].fallbackBytecode;
-        } else if (codeRes.ok) {
-          bytecodeHex = codeRes.result || '0x';
-        }
+      } else if (codeRes.ok) {
+        bytecodeHex = codeRes.result || '0x';
       }
 
       // Resolve balance in native PROS / PHRS
@@ -741,21 +631,21 @@ export default function App() {
         try {
           const weiBig = BigInt(balRes.result);
           const whole = Number(weiBig / BigInt(1e14)) / 10000;
-          balanceNative = whole > 0 ? whole.toFixed(4) : knownMeta?.fallbackBalance || '0.0000';
+          balanceNative = whole.toFixed(4);
         } catch {
-          balanceNative = knownMeta?.fallbackBalance || '0.0000';
+          balanceNative = null;
         }
-      } else if (knownMeta?.fallbackBalance) {
-        balanceNative = knownMeta.fallbackBalance;
+      } else {
+        balanceNative = null;
       }
 
       // Resolve transaction count
       let txCount = 0;
       if (txRes.ok && txRes.result) {
         const parsedTx = parseInt(txRes.result, 16);
-        txCount = parsedTx > 0 ? parsedTx : knownMeta?.fallbackTxCount || 0;
-      } else if (knownMeta?.fallbackTxCount !== undefined) {
-        txCount = knownMeta.fallbackTxCount;
+        txCount = parsedTx;
+      } else {
+        txCount = null;
       }
 
       const generatedReport = buildRealInspectionReport({
@@ -944,8 +834,12 @@ export default function App() {
 
   const handleGenerateAiAdvisory = async () => {
     if (!report) return;
-    setIsAiLoading(true);
     const apiKey = '';
+    if (!apiKey) {
+      setAiBrief('AI memo is unavailable because no Gemini API key or server-side proxy is configured. The report above contains the available scan results.');
+      return;
+    }
+    setIsAiLoading(true);
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
     const prompt = `You are a Principal Smart Contract Auditor at Pharos Network. Provide a concise, Apple-grade plain-English security briefing (3 short paragraphs max) for a user about to transact with:
@@ -1083,9 +977,9 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                     report.rpcLive ? 'bg-[#34C759]' : 'bg-[#FF9500]'
                   }`}
                 />
-                <span>#{report.blockNumber.toLocaleString()}</span>
+                <span>{report.blockNumber === null ? 'Block unavailable' : `#${report.blockNumber.toLocaleString()}`}</span>
                 <span className="opacity-30">•</span>
-                <span>{report.latencyMs}ms</span>
+                <span>{report.latencyMs === null ? 'Latency unavailable' : `${report.latencyMs}ms`}</span>
               </div>
             )}
 
@@ -1264,35 +1158,35 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                 isDark ? 'text-[#86868B]' : 'text-[#6E6E73]'
               }`}
             >
-              Verified Benchmarks:
+              Example addresses (live data only):
             </span>
 
             {[
               {
                 addr: '0x9C2826939C6b87E2c8F1fB582BC1354897d78997',
                 net: 'atlantic',
-                label: 'Clean • RWA Treasury',
+                label: 'Example A',
                 short: '0x9C28…8997',
                 dot: 'bg-[#34C759]'
               },
               {
                 addr: '0xf0D41F52EeF2d4E50F3f40842239C6169E48AB17',
                 net: 'atlantic',
-                label: 'Risky • Unverified Drain Proxy',
+                label: 'Example B',
                 short: '0xf0D4…AB17',
                 dot: 'bg-[#FF3B30]'
               },
               {
                 addr: '0x104E6D889875c5bac04c6a17cfb66d74b4638e95',
                 net: 'mainnet',
-                label: 'Clean • Mainnet Registry',
+                label: 'Example C',
                 short: '0x104E…8e95',
                 dot: 'bg-[#0019CC]'
               },
               {
                 addr: '0x2aF3203cCeAE275a990a540c49D282e41199121c',
                 net: 'mainnet',
-                label: 'Medium • Allowance Pull',
+                label: 'Example D',
                 short: '0x2aF3…121c',
                 dot: 'bg-[#FF9500]'
               }
@@ -1549,11 +1443,11 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                     {[
                       {
                         label: 'Native Balance',
-                        value: `${report.balanceNative} ${report.networkConfig.symbol}`
+                        value: report.balanceNative === null ? 'Unavailable' : `${report.balanceNative} ${report.networkConfig.symbol}`
                       },
                       {
                         label: 'Transactions',
-                        value: report.txCount.toLocaleString()
+                        value: report.txCount === null ? 'Unavailable' : report.txCount.toLocaleString()
                       },
                       {
                         label: 'Bytecode Size',
@@ -1715,7 +1609,7 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                   ) : (
                     <Sparkles className="w-3.5 h-3.5" />
                   )}
-                  <span>AI Auditor Memo</span>
+                  <span>AI Memo</span>
                 </button>
               </div>
             </div>
@@ -1981,10 +1875,10 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                         isDark ? 'text-white' : 'text-[#1D1D1F]'
                       }`}
                     >
-                      Clean vs. Risky On-Chain Benchmark
+                      Illustrative Risk Scenarios
                     </h3>
                     <p className="text-xs text-[#86868B]">
-                      Side-by-side comparison of verified clean vs. high-risk contracts on Pharos Network.
+                      Static examples for explaining the signal model; these are not verified contract findings.
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -2192,20 +2086,15 @@ ${report.signals.map((s) => `- ${s.name}: [${s.status}] ${s.metric} -> ${s.plain
                       setWalletModalOpen(false);
                       await handleConnectBrowserWallet();
                     } else {
-                      // Allow testing with a simulated connected wallet if user has no extension installed
-                      const demoUserWallet = '0x9C2826939C6b87E2c8F1fB582BC1354897d78997';
-                      setConnectedWallet(demoUserWallet);
-                      setWalletChainId(currentNetwork.chainId);
-                      setAddressInput(demoUserWallet);
-                      runLivePharosInspection(demoUserWallet, networkKey);
-                      setWalletModalOpen(false);
+                      setWalletStatusMsg('No injected wallet found. Install a browser wallet to connect.');
+                      setTimeout(() => setWalletStatusMsg(''), 4000);
                     }
                   }}
                   className="w-full py-3 px-4 rounded-2xl bg-[#0019CC] hover:bg-[#0014A8] text-white text-xs font-semibold cursor-pointer"
                 >
                   {typeof window !== 'undefined' && window.ethereum
                     ? 'Connect Browser Wallet (MetaMask / Rabby)'
-                    : 'Simulate Connected Pharos Wallet'}
+                    : 'Wallet extension required'}
                 </button>
               </div>
             )}
